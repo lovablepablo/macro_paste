@@ -184,10 +184,38 @@ impl ApplicationHandler for App {
 }
 
 fn main() {
+    // Prevent multiple instances using a named mutex
+    let _mutex = ensure_single_instance();
+
     // Create the winit event loop (drives the Windows message pump)
     let event_loop = EventLoop::new().expect("Failed to create event loop");
 
     // Run the app – this blocks until exit
     let mut app = App::new();
     event_loop.run_app(&mut app).expect("Event loop error");
+}
+
+/// Create a named mutex to ensure only one instance of the app runs at a time.
+/// Returns the mutex handle which must be kept alive for the app's lifetime.
+/// Exits silently if another instance is already running.
+fn ensure_single_instance() -> windows::Win32::Foundation::HANDLE {
+    use windows::core::w;
+    use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
+    use windows::Win32::System::Threading::CreateMutexW;
+
+    let handle = unsafe { CreateMutexW(None, false, w!("Global\\MacroPaste_SingleInstance")) };
+
+    match handle {
+        Ok(h) => {
+            // Check if the mutex already existed (another instance is running)
+            if unsafe { windows::Win32::Foundation::GetLastError() } == ERROR_ALREADY_EXISTS {
+                std::process::exit(0);
+            }
+            h
+        }
+        Err(_) => {
+            // If mutex creation fails, exit to be safe
+            std::process::exit(0);
+        }
+    }
 }
