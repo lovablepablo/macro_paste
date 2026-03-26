@@ -76,6 +76,13 @@ Die Datei wird beim ersten Start automatisch mit Standardwerten erstellt. Änder
 2. Neue `macro_paste.exe` herunterladen und die alte ersetzen
 3. App neu starten – die `config.json` bleibt erhalten
 
+## Datenschutz & Sicherheit
+
+- Die App **speichert keine Passwörter oder Clipboard-Inhalte** – sie liest die Zwischenablage nur im Moment des Hotkey-Drucks
+- **Kein Netzwerkzugriff** – die App arbeitet komplett offline, es werden keine Daten übertragen
+- **Keine Telemetrie oder Analyse** – was du einfügst, bleibt auf deinem Rechner
+- Die einzige Datei die geschrieben wird ist `config.json` (Hotkey, Delay, Autostart-Einstellung)
+
 ## Technische Details
 
 - **Sprache:** Rust

@@ -76,6 +76,13 @@ The file is created automatically with default values on first launch. Changes m
 2. Download the new `macro_paste.exe` and replace the old one
 3. Restart the app – `config.json` is preserved
 
+## Privacy & Security
+
+- The app **does not store any passwords or clipboard content** – it only reads the clipboard at the moment the hotkey is pressed
+- **No network access** – the app works entirely offline, no data is sent anywhere
+- **No telemetry or analytics** – what you paste stays on your machine
+- The only file written to disk is `config.json` (hotkey, delay, autostart preference)
+
 ## Technical Details
 
 - **Language:** Rust
