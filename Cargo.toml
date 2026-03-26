@@ -3,6 +3,10 @@ name = "macro_paste"
 version = "0.1.0"
 edition = "2024"
 description = "System tray app that pastes clipboard text as individual keystrokes"
+license = "MIT"
+repository = "https://github.com/lovablepablo/macro_paste"
+authors = ["Nicolai Wolff"]
+keywords = ["clipboard", "keyboard", "remote-desktop", "tray"]
 
 [dependencies]
 # System Tray (tray-icon re-exports muda 0.15 as tray_icon::menu)
