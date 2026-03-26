@@ -1,0 +1,38 @@
+[package]
+name = "macro_paste"
+version = "0.1.0"
+edition = "2024"
+description = "System tray app that pastes clipboard text as individual keystrokes"
+
+[dependencies]
+# System Tray (tray-icon re-exports muda 0.15 as tray_icon::menu)
+tray-icon = "0.19"
+
+# Event Loop (Windows message pump)
+winit = "0.30"
+
+# Global Hotkey
+global-hotkey = "0.6"
+
+# Clipboard access (lightweight Windows API wrapper)
+clipboard-win = "5"
+
+# Windows API for SendInput
+windows = { version = "0.61", features = [
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_Foundation",
+] }
+
+# Config persistence
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Registry access for autostart
+winreg = "0.55"
+
+# Embed icon resource into .exe
+embed-resource = "3"
+
+[build-dependencies]
+embed-resource = "3"
