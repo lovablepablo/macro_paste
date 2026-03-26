@@ -1,34 +1,36 @@
 # macro_paste
 
-Windows System-Tray-App, die Clipboard-Text als einzelne Tastaturanschläge sendet.
+> **[Deutsch](README.de.md)**
 
-## Wozu?
+Windows system tray app that sends clipboard text as individual keystrokes.
 
-In Fernwartungssitzungen (TeamViewer, pcvisit, AnyDesk etc.) kann man im **Windows Login-Dialog** der Zielmaschine kein `Ctrl+V` verwenden. macro_paste löst das Problem: Es liest den Text aus der lokalen Zwischenablage und simuliert einzelne Tastatureingaben via `SendInput`. Die Fernwartungssoftware leitet diese dann wie echte Tastaturanschläge an die Zielmaschine weiter.
+## Why?
+
+In remote desktop sessions (TeamViewer, pcvisit, AnyDesk, etc.) you cannot use `Ctrl+V` in the **Windows login dialog** of the remote machine. macro_paste solves this: it reads text from the local clipboard and simulates individual key presses via `SendInput`. The remote desktop software then forwards these as real keystrokes to the target machine.
 
 ## Features
 
-- **System Tray** – läuft unauffällig im Hintergrund
-- **Globaler Hotkey** – Standard: `Ctrl+Shift+V`, änderbar über Tray-Menü
-- **Unicode-Support** – Sonderzeichen (äöü, @, €, ß) werden korrekt gesendet
-- **Konfigurierbarer Delay** – 10 / 20 / 30 / 50 / 100 / 200ms zwischen Anschlägen (Standard: 30ms)
-- **Autostart** – optional beim Windows-Start mitlaufen (Registry-basiert)
-- **Portable** – einzelne .exe (~620 KB), keine Installation nötig
-- **Config-Datei** – `config.json` neben der .exe, wird automatisch erstellt
+- **System Tray** – runs quietly in the background
+- **Global Hotkey** – default: `Ctrl+Shift+V`, configurable via tray menu
+- **Unicode Support** – special characters (umlauts, @, €, etc.) are sent correctly
+- **Configurable Delay** – 10 / 20 / 30 / 50 / 100 / 200ms between keystrokes (default: 30ms)
+- **Autostart** – optionally launch at Windows startup (registry-based)
+- **Portable** – single .exe (~620 KB), no installation required
+- **Config File** – `config.json` next to the .exe, created automatically
 
 ## Installation
 
-### Option A: Vorkompilierte .exe (empfohlen)
+### Option A: Pre-built .exe (recommended)
 
-1. `macro_paste.exe` aus dem [neuesten Release](https://github.com/lovablepablo/macro_paste/releases) herunterladen
-2. In einen beliebigen Ordner legen (z.B. `C:\Tools\`)
-3. Starten – das Tray-Icon erscheint im System Tray
+1. Download `macro_paste.exe` from the [latest release](https://github.com/lovablepablo/macro_paste/releases)
+2. Place it in any folder (e.g. `C:\Tools\`)
+3. Run it – the tray icon appears in the system tray
 
-### Option B: Selbst kompilieren
+### Option B: Build from source
 
-**Voraussetzungen:**
-- [Rust](https://rustup.rs/) (inkl. Cargo)
-- [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/) mit "Desktop development with C++" Workload
+**Prerequisites:**
+- [Rust](https://rustup.rs/) (including Cargo)
+- [Visual Studio Build Tools 2022](https://visualstudio.microsoft.com/visual-cpp-build-tools/) with "Desktop development with C++" workload
 
 ```bash
 git clone https://github.com/lovablepablo/macro_paste.git
@@ -36,27 +38,27 @@ cd macro_paste
 cargo build --release
 ```
 
-Die fertige .exe liegt unter `target/release/macro_paste.exe`.
+The compiled binary is at `target/release/macro_paste.exe`.
 
-## Verwendung
+## Usage
 
-1. **Text kopieren** – z.B. ein Passwort mit `Ctrl+C` in die Zwischenablage kopieren
-2. **Zielfeld fokussieren** – z.B. das Passwort-Feld im Windows Login der Fernwartungssitzung anklicken
-3. **Hotkey drücken** – `Ctrl+Shift+V` (Standard) – der Text wird Zeichen für Zeichen eingegeben
+1. **Copy text** – e.g. copy a password to the clipboard with `Ctrl+C`
+2. **Focus the target field** – e.g. click the password field in the Windows login of the remote session
+3. **Press the hotkey** – `Ctrl+Shift+V` (default) – the text is typed character by character
 
-### Tray-Menü (Rechtsklick auf das Icon)
+### Tray Menu (right-click the icon)
 
-| Eintrag | Funktion |
-|---------|----------|
-| Paste as Keystrokes | Manueller Trigger (alternativ zum Hotkey) |
-| Hotkey | Tastenkombination ändern (Ctrl+Shift+V/P, Ctrl+Alt+V/P) |
-| Delay | Verzögerung zwischen Tastenanschlägen anpassen |
-| Autostart | App beim Windows-Start automatisch starten |
-| Beenden | App schließen |
+| Entry | Function |
+|-------|----------|
+| Paste as Keystrokes | Manual trigger (alternative to the hotkey) |
+| Hotkey | Change the key combination (Ctrl+Shift+V/P, Ctrl+Alt+V/P) |
+| Delay | Adjust the delay between keystrokes |
+| Autostart | Auto-launch the app at Windows startup |
+| Beenden | Quit the app |
 
-## Konfiguration
+## Configuration
 
-Die Einstellungen werden in `config.json` neben der .exe gespeichert:
+Settings are stored in `config.json` next to the .exe:
 
 ```json
 {
@@ -66,24 +68,24 @@ Die Einstellungen werden in `config.json` neben der .exe gespeichert:
 }
 ```
 
-Die Datei wird beim ersten Start automatisch mit Standardwerten erstellt. Änderungen über das Tray-Menü werden sofort gespeichert.
+The file is created automatically with default values on first launch. Changes made via the tray menu are saved immediately.
 
 ## Update
 
-1. App über Tray-Menü beenden
-2. Neue `macro_paste.exe` herunterladen und die alte ersetzen
-3. App neu starten – die `config.json` bleibt erhalten
+1. Quit the app via the tray menu
+2. Download the new `macro_paste.exe` and replace the old one
+3. Restart the app – `config.json` is preserved
 
-## Technische Details
+## Technical Details
 
-- **Sprache:** Rust
-- **Keystroke-Methode:** `SendInput` mit `KEYEVENTF_UNICODE` – sendet Unicode-Zeichen direkt ohne VirtualKey-Mapping
+- **Language:** Rust
+- **Keystroke Method:** `SendInput` with `KEYEVENTF_UNICODE` – sends Unicode characters directly without VirtualKey mapping
 - **Event Loop:** winit (Windows Message Pump)
 - **Tray:** tray-icon + muda
-- **Hotkey:** global-hotkey Crate
+- **Hotkey:** global-hotkey crate
 - **Clipboard:** clipboard-win (Windows API)
 - **Autostart:** Registry (`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`)
 
-## Lizenz
+## License
 
 MIT
