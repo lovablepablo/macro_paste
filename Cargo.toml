@@ -1,6 +1,6 @@
 [package]
 name = "macro_paste"
-version = "1.0.1"
+version = "1.1.0"
 edition = "2024"
 description = "System tray app that pastes clipboard text as individual keystrokes"
 license = "MIT"
@@ -12,16 +12,24 @@ keywords = ["clipboard", "keyboard", "remote-desktop", "tray"]
 # System Tray (tray-icon re-exports muda 0.15 as tray_icon::menu)
 tray-icon = "0.19"
 
-# Event Loop (Windows message pump)
+# Event Loop (cross-platform message pump)
 winit = "0.30"
 
-# Global Hotkey
+# Global Hotkey (cross-platform)
 global-hotkey = "0.6"
 
-# Clipboard access (lightweight Windows API wrapper)
-clipboard-win = "5"
+# Clipboard access (cross-platform)
+arboard = "3"
 
-# Windows API for SendInput
+# Config persistence
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Image decoding for loading the tray icon
+image = { version = "0.25", default-features = false, features = ["ico", "png"] }
+
+# --- Windows-only dependencies ---
+[target.'cfg(target_os = "windows")'.dependencies]
 windows = { version = "0.61", features = [
     "Win32_UI_Input_KeyboardAndMouse",
     "Win32_UI_WindowsAndMessaging",
@@ -29,16 +37,13 @@ windows = { version = "0.61", features = [
     "Win32_System_Threading",
     "Win32_Security",
 ] }
-
-# Config persistence
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-
-# Registry access for autostart
 winreg = "0.55"
 
-# Image decoding for loading the tray icon from ICO file
-image = { version = "0.25", default-features = false, features = ["ico", "png"] }
-
-[build-dependencies]
+[target.'cfg(target_os = "windows")'.build-dependencies]
 embed-resource = "3"
+
+# --- macOS-only dependencies ---
+[target.'cfg(target_os = "macos")'.dependencies]
+core-graphics = "0.24"
+core-foundation = "0.10"
+libc = "0.2"

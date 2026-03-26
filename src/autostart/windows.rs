@@ -1,4 +1,4 @@
-//! Autostart module – manages the Windows Registry entry for launching at login.
+//! Windows autostart – manages the Registry entry for launching at login.
 
 use winreg::enums::*;
 use winreg::RegKey;
@@ -45,14 +45,4 @@ pub fn is_autostart_enabled() -> bool {
     } else {
         false
     }
-}
-
-/// Toggle autostart on/off, returns the new state
-pub fn toggle_autostart(enable: bool) -> Result<bool, String> {
-    if enable {
-        enable_autostart()?;
-    } else {
-        disable_autostart()?;
-    }
-    Ok(enable)
 }

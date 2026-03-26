@@ -1,13 +1,12 @@
-//! Clipboard module – reads text from the Windows clipboard.
+//! Clipboard module – reads text from the system clipboard (cross-platform via arboard).
 
-use clipboard_win::{formats, get_clipboard};
+use arboard::Clipboard;
 
 /// Attempt to read text from the clipboard.
 /// Returns `Some(text)` if the clipboard contains text, `None` otherwise.
 pub fn get_clipboard_text() -> Option<String> {
-    // Try to read Unicode text from clipboard
-    let result: Result<String, _> = get_clipboard(formats::Unicode);
-    match result {
+    let mut clipboard = Clipboard::new().ok()?;
+    match clipboard.get_text() {
         Ok(text) if !text.is_empty() => Some(text),
         _ => None,
     }

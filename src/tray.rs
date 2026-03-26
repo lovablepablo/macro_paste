@@ -6,8 +6,11 @@ use tray_icon::menu::{
 };
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
-/// Embedded icon bytes (favicon.ico compiled into the binary)
+/// Embedded icon bytes – PNG works on all platforms, ICO additionally on Windows
+#[cfg(target_os = "windows")]
 const ICON_BYTES: &[u8] = include_bytes!("../assets/favicon.ico");
+#[cfg(not(target_os = "windows"))]
+const ICON_BYTES: &[u8] = include_bytes!("../assets/Clipboard_Robot.png");
 
 /// Collection of menu item IDs for event handling
 pub struct MenuIds {
@@ -101,7 +104,7 @@ pub fn poll_menu_event() -> Option<MenuEvent> {
     MenuEvent::receiver().try_recv().ok()
 }
 
-/// Load the app icon from the embedded ICO file bytes, decode to RGBA
+/// Load the app icon from embedded image bytes, decode to RGBA
 fn load_icon_from_ico() -> Icon {
     use image::ImageReader;
     use std::io::Cursor;

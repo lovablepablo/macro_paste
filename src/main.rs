@@ -2,17 +2,20 @@
 //!
 //! Designed for pasting passwords and text into remote desktop sessions
 //! (TeamViewer, pcvisit, etc.) where Ctrl+V doesn't work, e.g. Windows login screens.
-//! The app reads the local clipboard and simulates keyboard input via SendInput,
+//! The app reads the local clipboard and simulates keyboard input,
 //! which the remote desktop software forwards as normal key presses.
+//!
+//! Cross-platform: works on Windows and macOS.
 
-// Hide the console window in release builds
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+// Hide the console window in release builds (Windows only)
+#![cfg_attr(all(not(debug_assertions), target_os = "windows"), windows_subsystem = "windows")]
 
 mod autostart;
 mod clipboard;
 mod config;
 mod hotkey;
 mod keystrokes;
+mod single_instance;
 mod tray;
 
 use config::Config;
@@ -80,8 +83,12 @@ impl App {
                 // Toggle autostart
                 let mut cfg = self.config.lock().unwrap();
                 cfg.autostart = !cfg.autostart;
-                let _ = autostart::toggle_autostart(cfg.autostart);
-                let _ = cfg.save();
+                if let Err(e) = autostart::toggle_autostart(cfg.autostart) {
+                    eprintln!("Failed to toggle autostart: {e}");
+                }
+                if let Err(e) = cfg.save() {
+                    eprintln!("Failed to save config: {e}");
+                }
             } else if let Some((_id, hotkey_str)) = menu_ids
                 .hotkey_options
                 .iter()
@@ -97,7 +104,9 @@ impl App {
                             self.current_hotkey = Some(new_hk);
                             let mut cfg = self.config.lock().unwrap();
                             cfg.hotkey = hotkey_str;
-                            let _ = cfg.save();
+                            if let Err(e) = cfg.save() {
+                                eprintln!("Failed to save config: {e}");
+                            }
                         }
                         Err(e) => eprintln!("Failed to update hotkey: {e}"),
                     }
@@ -110,7 +119,9 @@ impl App {
                 // Change delay
                 let mut cfg = self.config.lock().unwrap();
                 cfg.delay_ms = *delay_ms;
-                let _ = cfg.save();
+                if let Err(e) = cfg.save() {
+                    eprintln!("Failed to save config: {e}");
+                }
             }
         }
     }
@@ -148,7 +159,7 @@ impl ApplicationHandler for App {
             }
         }
 
-        // Sync autostart state with registry
+        // Sync autostart state with system
         let actual_autostart = autostart::is_autostart_enabled();
         if actual_autostart != cfg.autostart {
             let mut cfg_mut = self.config.lock().unwrap();
@@ -166,7 +177,12 @@ impl ApplicationHandler for App {
         // No windows to handle – we only use the tray
     }
 
-    fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
+    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
+        // Poll every 50ms so hotkey/menu events are detected promptly
+        event_loop.set_control_flow(winit::event_loop::ControlFlow::WaitUntil(
+            std::time::Instant::now() + std::time::Duration::from_millis(50),
+        ));
+
         // Check for hotkey events – only trigger on key press, not release
         if let Ok(event) = GlobalHotKeyEvent::receiver().try_recv() {
             if event.state == HotKeyState::Pressed {
@@ -184,38 +200,13 @@ impl ApplicationHandler for App {
 }
 
 fn main() {
-    // Prevent multiple instances using a named mutex
-    let _mutex = ensure_single_instance();
+    // Prevent multiple instances
+    let _lock = single_instance::ensure_single_instance();
 
-    // Create the winit event loop (drives the Windows message pump)
+    // Create the event loop (cross-platform message pump)
     let event_loop = EventLoop::new().expect("Failed to create event loop");
 
     // Run the app – this blocks until exit
     let mut app = App::new();
     event_loop.run_app(&mut app).expect("Event loop error");
-}
-
-/// Create a named mutex to ensure only one instance of the app runs at a time.
-/// Returns the mutex handle which must be kept alive for the app's lifetime.
-/// Exits silently if another instance is already running.
-fn ensure_single_instance() -> windows::Win32::Foundation::HANDLE {
-    use windows::core::w;
-    use windows::Win32::Foundation::ERROR_ALREADY_EXISTS;
-    use windows::Win32::System::Threading::CreateMutexW;
-
-    let handle = unsafe { CreateMutexW(None, false, w!("Global\\MacroPaste_SingleInstance")) };
-
-    match handle {
-        Ok(h) => {
-            // Check if the mutex already existed (another instance is running)
-            if unsafe { windows::Win32::Foundation::GetLastError() } == ERROR_ALREADY_EXISTS {
-                std::process::exit(0);
-            }
-            h
-        }
-        Err(_) => {
-            // If mutex creation fails, exit to be safe
-            std::process::exit(0);
-        }
-    }
 }
