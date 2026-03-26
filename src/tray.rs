@@ -12,18 +12,18 @@ const ICON_BYTES: &[u8] = include_bytes!("../assets/favicon.ico");
 #[cfg(not(target_os = "windows"))]
 const ICON_BYTES: &[u8] = include_bytes!("../assets/Clipboard_Robot.png");
 
-/// Collection of menu item IDs for event handling
+/// Collection of menu item handles for event handling and visual updates
 pub struct MenuIds {
     pub paste_now: MenuId,
-    pub autostart: MenuId,
     pub quit: MenuId,
-    /// Hotkey option IDs mapped to their label strings
-    pub hotkey_options: Vec<(MenuId, String)>,
-    /// Delay option IDs mapped to their delay values in ms
-    pub delay_options: Vec<(MenuId, u64)>,
+    pub autostart: CheckMenuItem,
+    pub hotkey_submenu: Submenu,
+    pub hotkey_items: Vec<(CheckMenuItem, String)>,
+    pub delay_submenu: Submenu,
+    pub delay_items: Vec<(CheckMenuItem, u64)>,
 }
 
-/// Build the tray icon and context menu, returns the tray icon handle and menu IDs
+/// Build the tray icon and context menu, returns the tray icon handle and menu handles
 pub fn build_tray(
     current_hotkey: &str,
     current_delay_ms: u64,
@@ -41,27 +41,26 @@ pub fn build_tray(
         "Ctrl+Alt+V",
         "Ctrl+Alt+P",
     ];
-    let mut hotkey_options = Vec::new();
+    let mut hotkey_items = Vec::new();
     for choice in &hotkey_choices {
         let item = CheckMenuItem::new(*choice, true, *choice == current_hotkey, None);
-        hotkey_options.push((item.id().clone(), choice.to_string()));
         hotkey_submenu.append(&item).map_err(|e| e.to_string())?;
+        hotkey_items.push((item, choice.to_string()));
     }
 
     // Delay submenu with preset values
     let delay_submenu = Submenu::new(format!("Delay: {current_delay_ms}ms"), true);
     let delay_choices: Vec<u64> = vec![10, 20, 30, 50, 100, 200];
-    let mut delay_options = Vec::new();
+    let mut delay_items = Vec::new();
     for &ms in &delay_choices {
         let label = format!("{ms}ms");
         let item = CheckMenuItem::new(&label, true, ms == current_delay_ms, None);
-        delay_options.push((item.id().clone(), ms));
         delay_submenu.append(&item).map_err(|e| e.to_string())?;
+        delay_items.push((item, ms));
     }
 
     // Autostart checkbox
     let autostart_item = CheckMenuItem::new("Autostart", true, autostart_enabled, None);
-    let autostart_id = autostart_item.id().clone();
 
     // Quit item
     let quit_item = tray_icon::menu::MenuItem::new("Beenden", true, None);
@@ -90,10 +89,12 @@ pub fn build_tray(
 
     let ids = MenuIds {
         paste_now: paste_now_id,
-        autostart: autostart_id,
         quit: quit_id,
-        hotkey_options,
-        delay_options,
+        autostart: autostart_item,
+        hotkey_submenu,
+        hotkey_items,
+        delay_submenu,
+        delay_items,
     };
 
     Ok((tray, ids))
