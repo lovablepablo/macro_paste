@@ -69,7 +69,11 @@ impl App {
 
         if let Some(text) = clipboard::get_clipboard_text() {
             std::thread::spawn(move || {
-                // Small delay before typing to allow key release from hotkey
+                // On macOS, wait long enough for the user to release the hotkey modifiers
+                // (Ctrl+Shift) before typing starts – otherwise those modifiers corrupt output
+                #[cfg(target_os = "macos")]
+                std::thread::sleep(std::time::Duration::from_millis(350));
+                #[cfg(not(target_os = "macos"))]
                 std::thread::sleep(std::time::Duration::from_millis(100));
                 keystrokes::send_string_as_keystrokes(&text, delay_ms);
             });
