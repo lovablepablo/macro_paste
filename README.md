@@ -45,7 +45,12 @@ Binary: `target/release/macro_paste.exe`
 
 Build from source (pre-built binary not yet available):
 
-Prerequisites: [Rust](https://rustup.rs/), Xcode Command Line Tools (`xcode-select --install`)
+**Prerequisites:** [Rust](https://rustup.rs/), Xcode Command Line Tools
+
+```bash
+xcode-select --install       # install Xcode CLI tools if not already present
+sudo xcodebuild -license     # accept the Xcode license agreement
+```
 
 ```bash
 git clone https://github.com/lovablepablo/macro_paste.git
@@ -55,7 +60,32 @@ cargo build --release
 
 Binary: `target/release/macro_paste`
 
-**Important:** On first launch, grant Accessibility permission under **System Settings > Privacy & Security > Accessibility**. Without this, keystroke simulation will not work.
+To run it as a proper menu bar app, wrap it in an `.app` bundle:
+
+```bash
+mkdir -p target/release/macro_paste.app/Contents/MacOS
+mkdir -p target/release/macro_paste.app/Contents/Resources
+cp target/release/macro_paste target/release/macro_paste.app/Contents/MacOS/macro_paste
+```
+
+Create `target/release/macro_paste.app/Contents/Info.plist` with `LSUIElement` set to `true` (see repository for a ready-to-use template).
+
+Then open with:
+
+```bash
+open target/release/macro_paste.app
+```
+
+**Important – Accessibility permission:**
+
+Keystroke simulation requires Accessibility access. Grant it under:
+**System Settings → Privacy & Security → Accessibility**
+
+> **Note:** macOS revokes this permission whenever the binary is replaced (e.g. after a new build). After every update you must re-add the app in the Accessibility settings: remove it with `−` and add it again with `+`.
+
+**Troubleshooting – menu bar icon not visible:**
+
+If the icon does not appear, macOS may be hiding it due to limited menu bar space. Hold `Cmd` and drag other icons to the right to make room, or check whether a menu bar manager (Bartender, Ice, etc.) has hidden it.
 
 ## Usage
 
@@ -92,6 +122,8 @@ The file is created automatically with default values on first launch. Changes m
 1. Quit the app via the tray menu
 2. Replace the binary with the new version
 3. Restart the app – `config.json` is preserved
+
+**macOS only:** After replacing the binary, re-grant Accessibility permission under **System Settings → Privacy & Security → Accessibility** (remove and re-add the app).
 
 ## Privacy & Security
 
