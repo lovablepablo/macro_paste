@@ -6,6 +6,9 @@ use tray_icon::menu::{
 };
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
+/// Embedded icon bytes (favicon.ico compiled into the binary)
+const ICON_BYTES: &[u8] = include_bytes!("../assets/favicon.ico");
+
 /// Collection of menu item IDs for event handling
 pub struct MenuIds {
     pub paste_now: MenuId,
@@ -71,8 +74,8 @@ pub fn build_tray(
     menu.append(&PredefinedMenuItem::separator()).map_err(|e| e.to_string())?;
     menu.append(&quit_item).map_err(|e| e.to_string())?;
 
-    // Create a simple icon (blue square as placeholder)
-    let icon = create_default_icon();
+    // Load the app icon from embedded ICO bytes
+    let icon = load_icon_from_ico();
 
     // Build the tray icon
     let tray = TrayIconBuilder::new()
@@ -98,23 +101,20 @@ pub fn poll_menu_event() -> Option<MenuEvent> {
     MenuEvent::receiver().try_recv().ok()
 }
 
-/// Create a simple colored icon programmatically (no .ico file needed)
-fn create_default_icon() -> Icon {
-    // 16x16 RGBA icon – a simple filled square in a teal/blue color
-    let size = 16u32;
-    let mut rgba = Vec::with_capacity((size * size * 4) as usize);
-    for y in 0..size {
-        for x in 0..size {
-            // Create a simple shape with a border
-            let border = x == 0 || x == size - 1 || y == 0 || y == size - 1;
-            if border {
-                // Dark border
-                rgba.extend_from_slice(&[20, 80, 120, 255]);
-            } else {
-                // Teal fill
-                rgba.extend_from_slice(&[40, 160, 200, 255]);
-            }
-        }
-    }
-    Icon::from_rgba(rgba, size, size).expect("Failed to create icon")
+/// Load the app icon from the embedded ICO file bytes, decode to RGBA
+fn load_icon_from_ico() -> Icon {
+    use image::ImageReader;
+    use std::io::Cursor;
+
+    let reader = ImageReader::new(Cursor::new(ICON_BYTES))
+        .with_guessed_format()
+        .expect("Failed to read icon format");
+
+    let img = reader.decode().expect("Failed to decode icon");
+    // Resize to 32x32 for the tray (good balance of quality and size)
+    let img = img.resize_exact(32, 32, image::imageops::FilterType::Lanczos3);
+    let rgba = img.to_rgba8();
+    let (w, h) = (rgba.width(), rgba.height());
+
+    Icon::from_rgba(rgba.into_raw(), w, h).expect("Failed to create tray icon")
 }

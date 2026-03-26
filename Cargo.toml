@@ -31,8 +31,8 @@ serde_json = "1"
 # Registry access for autostart
 winreg = "0.55"
 
-# Embed icon resource into .exe
-embed-resource = "3"
+# Image decoding for loading the tray icon from ICO file
+image = { version = "0.25", default-features = false, features = ["ico", "png"] }
 
 [build-dependencies]
 embed-resource = "3"
