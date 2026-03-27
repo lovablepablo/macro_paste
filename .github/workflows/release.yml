@@ -32,11 +32,11 @@ jobs:
           mkdir -p target/release/macro_paste.app/Contents/Resources
           cp target/release/macro_paste target/release/macro_paste.app/Contents/MacOS/macro_paste
           cp assets/Info.plist target/release/macro_paste.app/Contents/Info.plist
-          cd target/release && zip -r macro_paste_macos.zip macro_paste.app
+          cd target/release && zip -r macro_paste-macos-arm64.zip macro_paste.app
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: target/release/macro_paste_macos.zip
+          path: target/release/macro_paste-macos-arm64.zip
 
   release:
     needs: [build-windows, build-macos]
@@ -49,4 +49,4 @@ jobs:
         with:
           files: |
             windows/macro_paste.exe
-            macos/macro_paste_macos.zip
+            macos/macro_paste-macos-arm64.zip

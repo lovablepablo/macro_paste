@@ -43,9 +43,15 @@ Binary: `target/release/macro_paste.exe`
 
 **Option A: Pre-built .app bundle (recommended)**
 
-1. Download `macro_paste_macos.zip` from the [latest release](https://github.com/lovablepablo/macro_paste/releases)
+1. Download `macro_paste-macos-arm64.zip` from the [latest release](https://github.com/lovablepablo/macro_paste/releases)
 2. Unzip and move `macro_paste.app` to your Applications folder or any other location
-3. Open it – the icon appears in the menu bar
+3. Remove the macOS quarantine flag (required for unsigned apps):
+   ```bash
+   xattr -cr /Applications/macro_paste.app
+   ```
+4. Open it – the icon appears in the menu bar
+
+> **Note:** macOS may show _"damaged and can't be opened"_ for unsigned apps downloaded from the internet. The `xattr -cr` command above removes the quarantine flag and fixes this.
 
 **Option B: Build from source**
 

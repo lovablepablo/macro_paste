@@ -29,6 +29,13 @@ pub fn build_tray(
     current_delay_ms: u64,
     autostart_enabled: bool,
 ) -> Result<(TrayIcon, MenuIds), String> {
+    // Version label (disabled, non-clickable)
+    let version_item = tray_icon::menu::MenuItem::new(
+        format!("macro_paste v{}", env!("CARGO_PKG_VERSION")),
+        false,
+        None,
+    );
+
     // Create menu items
     let paste_now = tray_icon::menu::MenuItem::new("Paste as Keystrokes", true, None);
     let paste_now_id = paste_now.id().clone();
@@ -68,6 +75,8 @@ pub fn build_tray(
 
     // Assemble the full menu
     let menu = Menu::new();
+    menu.append(&version_item).map_err(|e| e.to_string())?;
+    menu.append(&PredefinedMenuItem::separator()).map_err(|e| e.to_string())?;
     menu.append(&paste_now).map_err(|e| e.to_string())?;
     menu.append(&PredefinedMenuItem::separator()).map_err(|e| e.to_string())?;
     menu.append(&hotkey_submenu).map_err(|e| e.to_string())?;
