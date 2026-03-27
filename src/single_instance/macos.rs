@@ -1,7 +1,7 @@
 //! macOS single instance check via file lock (flock).
 
 use super::InstanceLock;
-use std::fs::{self, File, OpenOptions};
+use std::fs::{self, OpenOptions};
 use std::os::unix::io::AsRawFd;
 use std::path::PathBuf;
 

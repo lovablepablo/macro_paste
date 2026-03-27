@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: target/release/macro_paste.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo build --release
+      - name: Create .app bundle
+        run: |
+          mkdir -p target/release/macro_paste.app/Contents/MacOS
+          mkdir -p target/release/macro_paste.app/Contents/Resources
+          cp target/release/macro_paste target/release/macro_paste.app/Contents/MacOS/macro_paste
+          cp assets/Info.plist target/release/macro_paste.app/Contents/Info.plist
+          cd target/release && zip -r macro_paste_macos.zip macro_paste.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: target/release/macro_paste_macos.zip
+
+  release:
+    needs: [build-windows, build-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            windows/macro_paste.exe
+            macos/macro_paste_macos.zip

@@ -1,6 +1,6 @@
 [package]
 name = "macro_paste"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2024"
 description = "System tray app that pastes clipboard text as individual keystrokes"
 license = "MIT"
