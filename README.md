@@ -1,7 +1,5 @@
 # macro_paste
 
-> **[Deutsch](README.de.md)**
-
 Cross-platform system tray app that sends clipboard text as individual keystrokes. Works on **Windows** and **macOS**.
 
 ## Why?
@@ -17,7 +15,7 @@ In remote desktop sessions (TeamViewer, pcvisit, AnyDesk, etc.) you cannot use `
 - **Autostart** – optionally launch at system startup
 - **Single Instance** – prevents duplicate tray icons
 - **Portable** – single binary, no installation required
-- **Config File** – `config.json` next to the binary, created automatically
+- **Config File** – settings stored automatically on first launch
 
 ## Installation
 
@@ -43,13 +41,18 @@ Binary: `target/release/macro_paste.exe`
 
 ### macOS
 
-Build from source (pre-built binary not yet available):
+**Option A: Pre-built .app bundle (recommended)**
 
-**Prerequisites:** [Rust](https://rustup.rs/), Xcode Command Line Tools
+1. Download `macro_paste_macos.zip` from the [latest release](https://github.com/lovablepablo/macro_paste/releases)
+2. Unzip and move `macro_paste.app` to your Applications folder or any other location
+3. Open it – the icon appears in the menu bar
+
+**Option B: Build from source**
+
+Prerequisites: [Rust](https://rustup.rs/), Xcode Command Line Tools
 
 ```bash
-xcode-select --install       # install Xcode CLI tools if not already present
-sudo xcodebuild -license     # accept the Xcode license agreement
+xcode-select --install   # if not already present
 ```
 
 ```bash
@@ -58,21 +61,13 @@ cd macro_paste
 cargo build --release
 ```
 
-Binary: `target/release/macro_paste`
-
 To run it as a proper menu bar app, wrap it in an `.app` bundle:
 
 ```bash
 mkdir -p target/release/macro_paste.app/Contents/MacOS
 mkdir -p target/release/macro_paste.app/Contents/Resources
 cp target/release/macro_paste target/release/macro_paste.app/Contents/MacOS/macro_paste
-```
-
-Create `target/release/macro_paste.app/Contents/Info.plist` with `LSUIElement` set to `true` (see repository for a ready-to-use template).
-
-Then open with:
-
-```bash
+cp assets/Info.plist target/release/macro_paste.app/Contents/Info.plist
 open target/release/macro_paste.app
 ```
 
@@ -101,11 +96,14 @@ If the icon does not appear, macOS may be hiding it due to limited menu bar spac
 | Hotkey | Change the key combination (Ctrl+Shift+V/P, Ctrl+Alt+V/P) |
 | Delay | Adjust the delay between keystrokes |
 | Autostart | Auto-launch the app at system startup |
-| Beenden | Quit the app |
+| Quit | Quit the app |
 
 ## Configuration
 
-Settings are stored in `config.json` next to the binary:
+Settings are stored in a platform-specific config file:
+
+- **macOS:** `~/Library/Application Support/macro_paste/config.json`
+- **Windows:** `config.json` next to the executable
 
 ```json
 {
@@ -120,8 +118,8 @@ The file is created automatically with default values on first launch. Changes m
 ## Update
 
 1. Quit the app via the tray menu
-2. Replace the binary with the new version
-3. Restart the app – `config.json` is preserved
+2. Replace the binary / app bundle with the new version
+3. Restart the app – your config is preserved
 
 **macOS only:** After replacing the binary, re-grant Accessibility permission under **System Settings → Privacy & Security → Accessibility** (remove and re-add the app).
 
@@ -130,7 +128,6 @@ The file is created automatically with default values on first launch. Changes m
 - The app **does not store any passwords or clipboard content** – it only reads the clipboard at the moment the hotkey is pressed
 - **No network access** – the app works entirely offline, no data is sent anywhere
 - **No telemetry or analytics** – what you paste stays on your machine
-- The only file written to disk is `config.json` (hotkey, delay, autostart preference)
 
 ## Technical Details
 
