@@ -11,6 +11,15 @@ mod macos;
 use std::thread;
 use std::time::Duration;
 
+/// Wait until all modifier keys are released before starting to type.
+pub fn wait_for_modifiers_released() {
+    #[cfg(target_os = "windows")]
+    windows::wait_for_modifiers_released();
+
+    #[cfg(target_os = "macos")]
+    macos::wait_for_modifiers_released();
+}
+
 /// Send a string as individual keystrokes with the given delay between each character.
 /// Delegates to the platform-specific implementation for the actual key simulation.
 pub fn send_string_as_keystrokes(text: &str, delay_ms: u64) {

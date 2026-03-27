@@ -5,9 +5,39 @@
 //! like umlauts (äöü), symbols (@€), etc.
 
 use windows::Win32::UI::Input::KeyboardAndMouse::{
-    SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
+    GetAsyncKeyState, SendInput, INPUT, INPUT_0, INPUT_KEYBOARD, KEYBDINPUT, KEYBD_EVENT_FLAGS,
     KEYEVENTF_KEYUP, KEYEVENTF_UNICODE, VIRTUAL_KEY,
 };
+
+/// Wait until all modifier keys (Ctrl, Shift, Alt, Win) are released,
+/// then add a small buffer so the OS can process the key-up events.
+/// Times out after 3 seconds to avoid hanging indefinitely.
+pub fn wait_for_modifiers_released() {
+    const MODIFIER_KEYS: &[i32] = &[
+        0x10, // VK_SHIFT
+        0x11, // VK_CONTROL
+        0x12, // VK_MENU (Alt)
+        0x5B, // VK_LWIN
+        0x5C, // VK_RWIN
+    ];
+
+    let timeout = std::time::Instant::now() + std::time::Duration::from_secs(3);
+
+    loop {
+        let all_released = MODIFIER_KEYS
+            .iter()
+            .all(|&vk| (unsafe { GetAsyncKeyState(vk) } as u16) & 0x8000 == 0);
+
+        if all_released || std::time::Instant::now() > timeout {
+            break;
+        }
+
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+
+    // Small buffer after release so the OS can finish processing the key-up events
+    std::thread::sleep(std::time::Duration::from_millis(50));
+}
 
 /// Send a single Unicode character as key-down + key-up via SendInput
 pub fn send_unicode_char(ch: char) {

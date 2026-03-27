@@ -5,7 +5,7 @@
     <key>CFBundleExecutable</key>
     <string>macro_paste</string>
     <key>CFBundleIdentifier</key>
-    <string>com.nwolff.macro-paste</string>
+    <string>io.github.lovablepablo.macropaste</string>
     <key>CFBundleName</key>
     <string>macro_paste</string>
     <key>CFBundlePackageType</key>

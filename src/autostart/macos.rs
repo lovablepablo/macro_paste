@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 
 /// Bundle identifier used for the Launch Agent plist filename
-const BUNDLE_ID: &str = "com.macropaste.app";
+const BUNDLE_ID: &str = "io.github.lovablepablo.macropaste";
 
 /// Get the path to the Launch Agent plist file
 fn plist_path() -> Result<PathBuf, String> {

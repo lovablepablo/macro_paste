@@ -63,7 +63,7 @@ pub fn build_tray(
     let autostart_item = CheckMenuItem::new("Autostart", true, autostart_enabled, None);
 
     // Quit item
-    let quit_item = tray_icon::menu::MenuItem::new("Beenden", true, None);
+    let quit_item = tray_icon::menu::MenuItem::new("Quit", true, None);
     let quit_id = quit_item.id().clone();
 
     // Assemble the full menu
@@ -82,7 +82,7 @@ pub fn build_tray(
     // Build the tray icon
     let tray = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
-        .with_tooltip("macro_paste – Clipboard als Keystrokes")
+        .with_tooltip("macro_paste – Paste clipboard as keystrokes")
         .with_icon(icon)
         .build()
         .map_err(|e| format!("Failed to create tray icon: {e}"))?;
