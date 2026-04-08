@@ -1,9 +1,9 @@
 //! Windows keystroke simulation via SendInput API.
 //!
 //! Uses VkKeyScanW + scan codes for RDP compatibility: Microsoft Remote Desktop
-//! only forwards physical scan codes, not KEYEVENTF_UNICODE events. Characters
-//! that have no mapping on the current keyboard layout fall back to Unicode input
-//! (works for local apps but not through RDP).
+//! only forwards physical scan codes, not KEYEVENTF_UNICODE events. Every INPUT
+//! event carries both the virtual key code AND the scan code so that RDP's
+//! low-level keyboard hook sees complete events and forwards them correctly.
 
 use windows::Win32::UI::Input::KeyboardAndMouse::{
     GetAsyncKeyState, MapVirtualKeyW, SendInput, VkKeyScanW, INPUT, INPUT_0, INPUT_KEYBOARD,
@@ -43,9 +43,9 @@ pub fn wait_for_modifiers_released() {
 
 /// Send a single Unicode character as key-down + key-up via SendInput.
 ///
-/// Uses VkKeyScanW to map the character to a physical scan code so the input
-/// is forwarded correctly through Microsoft Remote Desktop. Characters that
-/// have no mapping on the current keyboard layout (e.g. Asian scripts) fall
+/// Uses VkKeyScanW to map the character to a virtual key + scan code pair so
+/// the input is forwarded correctly through Microsoft Remote Desktop. Characters
+/// that have no mapping on the current keyboard layout (e.g. Asian scripts) fall
 /// back to KEYEVENTF_UNICODE which works locally but not through RDP.
 pub fn send_unicode_char(ch: char) {
     // Characters outside the BMP cannot be mapped via VkKeyScanW
@@ -59,14 +59,24 @@ pub fn send_unicode_char(ch: char) {
             let scan_code = unsafe { MapVirtualKeyW(vk as u32, MAPVK_VK_TO_VSC) } as u16;
 
             if scan_code != 0 {
-                // Press required modifiers
+                // Press required modifiers (each with VK + scan code for RDP)
                 if shift_state & 1 != 0 { send_vk_raw(VK_SHIFT.0, false); }
                 if shift_state & 2 != 0 { send_vk_raw(VK_CONTROL.0, false); }
                 if shift_state & 4 != 0 { send_vk_raw(VK_MENU.0, false); }
 
-                // Send the physical key via scan code
-                send_scan_raw(scan_code, false);
-                send_scan_raw(scan_code, true);
+                // Small delay so RDP processes modifier events before the character
+                if shift_state != 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(5));
+                }
+
+                // Send the physical key with both VK and scan code
+                send_key_raw(vk, scan_code, false);
+                send_key_raw(vk, scan_code, true);
+
+                // Small delay before releasing modifiers
+                if shift_state != 0 {
+                    std::thread::sleep(std::time::Duration::from_millis(5));
+                }
 
                 // Release modifiers in reverse order
                 if shift_state & 4 != 0 { send_vk_raw(VK_MENU.0, true); }
@@ -88,20 +98,24 @@ pub fn send_unicode_char(ch: char) {
 }
 
 /// Send a virtual key code as key-down + key-up (for Enter, Tab, etc.)
+/// Automatically includes the scan code for RDP compatibility.
 pub fn send_virtual_key(vk: u16) {
     send_vk_raw(vk, false);
     send_vk_raw(vk, true);
 }
 
-/// Send a single virtual key event (key-down or key-up)
+/// Send a single key event with both VK and scan code set.
+/// The scan code is looked up automatically via MapVirtualKeyW.
+/// Used for modifier keys and special keys (Enter, Tab, etc.).
 fn send_vk_raw(vk: u16, key_up: bool) {
+    let scan = unsafe { MapVirtualKeyW(vk as u32, MAPVK_VK_TO_VSC) } as u16;
     let flags = if key_up { KEYEVENTF_KEYUP } else { KEYBD_EVENT_FLAGS(0) };
     let input = INPUT {
         r#type: INPUT_KEYBOARD,
         Anonymous: INPUT_0 {
             ki: KEYBDINPUT {
                 wVk: VIRTUAL_KEY(vk),
-                wScan: 0,
+                wScan: scan,
                 dwFlags: flags,
                 time: 0,
                 dwExtraInfo: 0,
@@ -111,8 +125,9 @@ fn send_vk_raw(vk: u16, key_up: bool) {
     unsafe { SendInput(&[input], size_of::<INPUT>() as i32); }
 }
 
-/// Send a single scan code event (key-down or key-up)
-fn send_scan_raw(scan_code: u16, key_up: bool) {
+/// Send a single key event with explicit VK + scan code + KEYEVENTF_SCANCODE flag.
+/// Used for character keys where both values are already known.
+fn send_key_raw(vk: u16, scan_code: u16, key_up: bool) {
     let flags = if key_up {
         KEYEVENTF_SCANCODE | KEYEVENTF_KEYUP
     } else {
@@ -122,7 +137,7 @@ fn send_scan_raw(scan_code: u16, key_up: bool) {
         r#type: INPUT_KEYBOARD,
         Anonymous: INPUT_0 {
             ki: KEYBDINPUT {
-                wVk: VIRTUAL_KEY(0),
+                wVk: VIRTUAL_KEY(vk),
                 wScan: scan_code,
                 dwFlags: flags,
                 time: 0,
