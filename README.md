@@ -49,10 +49,12 @@ Binary: `target/release/macro_paste.exe`
 brew install --cask lovablepablo/tap/macro_paste
 ```
 
-Homebrew downloads the latest release, drops `macro_paste.app` into `/Applications`, and handles updates via `brew upgrade --cask`. If macOS still shows a Gatekeeper prompt on first launch (the app is unsigned), reinstall with `--no-quarantine` instead:
+Homebrew downloads the latest release, drops `macro_paste.app` into `/Applications`, and handles updates via `brew upgrade --cask`.
+
+Because the app is not signed with an Apple Developer ID, macOS Gatekeeper will block it on first launch. The cask prints the fix in its post-install caveats — run it once and the app launches normally:
 
 ```bash
-brew install --cask --no-quarantine lovablepablo/tap/macro_paste
+xattr -dr com.apple.quarantine /Applications/macro_paste.app
 ```
 
 To uninstall (and remove the config in `~/Library/Application Support/macro_paste`):
