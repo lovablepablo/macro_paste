@@ -41,7 +41,27 @@ Binary: `target/release/macro_paste.exe`
 
 ### macOS
 
-**Option A: Pre-built .app bundle (recommended)**
+> **Apple Silicon only.** The pre-built bundles target arm64. Intel Macs need to build from source (Option C).
+
+**Option A: Homebrew (recommended)**
+
+```bash
+brew install --cask lovablepablo/tap/macro_paste
+```
+
+Homebrew downloads the latest release, drops `macro_paste.app` into `/Applications`, and handles updates via `brew upgrade --cask`. If macOS still shows a Gatekeeper prompt on first launch (the app is unsigned), reinstall with `--no-quarantine` instead:
+
+```bash
+brew install --cask --no-quarantine lovablepablo/tap/macro_paste
+```
+
+To uninstall (and remove the config in `~/Library/Application Support/macro_paste`):
+
+```bash
+brew uninstall --cask --zap macro_paste
+```
+
+**Option B: Pre-built .app bundle (manual)**
 
 1. Download `macro_paste-macos-arm64.zip` from the [latest release](https://github.com/lovablepablo/macro_paste/releases)
 2. Unzip and move `macro_paste.app` to your Applications folder or any other location
@@ -53,7 +73,7 @@ Binary: `target/release/macro_paste.exe`
 
 > **Note:** macOS may show _"damaged and can't be opened"_ for unsigned apps downloaded from the internet. The `xattr -cr` command above removes the quarantine flag and fixes this.
 
-**Option B: Build from source**
+**Option C: Build from source**
 
 Prerequisites: [Rust](https://rustup.rs/), Xcode Command Line Tools
 

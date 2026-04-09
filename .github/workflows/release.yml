@@ -51,3 +51,48 @@ jobs:
           files: |
             windows/macro_paste.exe
             macos/macro_paste-macos-arm64.zip
+
+  update-homebrew-tap:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos
+
+      - name: Compute SHA256 and version
+        id: sha
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHA=$(sha256sum macro_paste-macos-arm64.zip | cut -d' ' -f1)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "sha256=${SHA}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout homebrew-tap
+        uses: actions/checkout@v4
+        with:
+          repository: lovablepablo/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update cask file
+        working-directory: homebrew-tap
+        run: |
+          sed -i \
+            -e 's|^  version ".*"|  version "${{ steps.sha.outputs.version }}"|' \
+            -e 's|^  sha256 ".*"|  sha256 "${{ steps.sha.outputs.sha256 }}"|' \
+            Casks/macro_paste.rb
+
+      - name: Commit and push to tap
+        working-directory: homebrew-tap
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet Casks/macro_paste.rb; then
+            echo "Cask is already up to date, nothing to commit."
+            exit 0
+          fi
+          git add Casks/macro_paste.rb
+          git commit -m "Bump macro_paste to ${{ steps.sha.outputs.version }}"
+          git push
