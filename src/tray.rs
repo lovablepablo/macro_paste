@@ -6,11 +6,11 @@ use tray_icon::menu::{
 };
 use tray_icon::{Icon, TrayIcon, TrayIconBuilder};
 
-/// Embedded icon bytes – PNG works on all platforms, ICO additionally on Windows
+/// Embedded icon bytes – ICO on Windows (multi-resolution), template PNG on macOS
 #[cfg(target_os = "windows")]
-const ICON_BYTES: &[u8] = include_bytes!("../assets/favicon.ico");
-#[cfg(not(target_os = "windows"))]
-const ICON_BYTES: &[u8] = include_bytes!("../assets/Clipboard_Robot.png");
+const ICON_BYTES: &[u8] = include_bytes!("../assets/macro_paste.ico");
+#[cfg(target_os = "macos")]
+const ICON_BYTES: &[u8] = include_bytes!("../assets/macro_paste_tray.png");
 
 /// Collection of menu item handles for event handling and visual updates
 pub struct MenuIds {
@@ -88,11 +88,14 @@ pub fn build_tray(
     // Load the app icon from embedded ICO bytes
     let icon = load_icon_from_ico();
 
-    // Build the tray icon
+    // Build the tray icon. `with_icon_as_template` is macOS-only and tells the
+    // system menu bar to auto-invert the (black-on-transparent) icon for light
+    // and dark mode. The call is a no-op on Windows.
     let tray = TrayIconBuilder::new()
         .with_menu(Box::new(menu))
         .with_tooltip("macro_paste – Paste clipboard as keystrokes")
         .with_icon(icon)
+        .with_icon_as_template(true)
         .build()
         .map_err(|e| format!("Failed to create tray icon: {e}"))?;
 
@@ -114,7 +117,10 @@ pub fn poll_menu_event() -> Option<MenuEvent> {
     MenuEvent::receiver().try_recv().ok()
 }
 
-/// Load the app icon from embedded image bytes, decode to RGBA
+/// Load the app icon from embedded image bytes, decode to RGBA.
+/// Resizes to 32x32 only when the source is larger – the macOS tray PNG is
+/// already 32x32 (16pt @2x) and shouldn't be touched, while the Windows .ico
+/// contains multiple resolutions and the largest one needs to be downscaled.
 fn load_icon_from_ico() -> Icon {
     use image::ImageReader;
     use std::io::Cursor;
@@ -124,8 +130,11 @@ fn load_icon_from_ico() -> Icon {
         .expect("Failed to read icon format");
 
     let img = reader.decode().expect("Failed to decode icon");
-    // Resize to 32x32 for the tray (good balance of quality and size)
-    let img = img.resize_exact(32, 32, image::imageops::FilterType::Lanczos3);
+    let img = if img.width() != 32 || img.height() != 32 {
+        img.resize_exact(32, 32, image::imageops::FilterType::Lanczos3)
+    } else {
+        img
+    };
     let rgba = img.to_rgba8();
     let (w, h) = (rgba.width(), rgba.height());
 

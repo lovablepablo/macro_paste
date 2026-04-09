@@ -32,6 +32,7 @@ jobs:
           mkdir -p target/release/macro_paste.app/Contents/Resources
           cp target/release/macro_paste target/release/macro_paste.app/Contents/MacOS/macro_paste
           cp assets/Info.plist target/release/macro_paste.app/Contents/Info.plist
+          cp assets/macro_paste.icns target/release/macro_paste.app/Contents/Resources/macro_paste.icns
           cd target/release && zip -r macro_paste-macos-arm64.zip macro_paste.app
       - uses: actions/upload-artifact@v4
         with:
