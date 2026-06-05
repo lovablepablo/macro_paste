@@ -110,6 +110,14 @@ Keystroke simulation requires Accessibility access. Grant it under:
 
 If the icon does not appear, macOS may be hiding it due to limited menu bar space. Hold `Cmd` and drag other icons to the right to make room, or check whether a menu bar manager (Bartender, Ice, etc.) has hidden it.
 
+**Important – RDP sessions: use Unicode keyboard mode:**
+
+When pasting into a **Windows RDP session** (Microsoft Remote Desktop / Windows App) from macOS, switch the RDP client to **Unicode** keyboard mode:
+
+**Connections → Keyboard Mode → Unicode** (shortcut `⌃⌘U`).
+
+In the default *Scancode* mode the RDP client sends physical key positions and strips synthesized modifier keys, so uppercase letters and special characters (e.g. `ä ö ü`, `:`) arrive wrong or lowercased. Unicode mode forwards the actual character and makes all input correct regardless of the keyboard layout. This is a setting in the RDP client, not in macro_paste.
+
 ## Usage
 
 1. **Copy text** – e.g. copy a password to the clipboard with `Ctrl+C` / `Cmd+C`

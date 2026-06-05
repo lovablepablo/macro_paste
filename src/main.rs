@@ -65,6 +65,13 @@ impl App {
     /// Execute the paste-as-keystrokes action: read clipboard and type it out.
     /// Runs in a background thread to avoid blocking the event loop.
     fn do_paste(&self) {
+        // Without the OS input permission, posted key events are silently
+        // dropped. Tell the user and point them to the settings instead.
+        if !keystrokes::has_input_permission() {
+            notify::prompt_missing_permission();
+            return;
+        }
+
         let delay_ms = self.config.delay_ms;
 
         if let Some(text) = clipboard::get_clipboard_text() {
@@ -238,6 +245,12 @@ impl ApplicationHandler for App {
         if actual_autostart != cfg.autostart {
             self.config.autostart = actual_autostart;
             let _ = self.config.save();
+        }
+
+        // Warn early if the input permission is missing, so the user can fix it
+        // before the first paste instead of hitting a silent no-op.
+        if !keystrokes::has_input_permission() {
+            notify::prompt_missing_permission();
         }
     }
 

@@ -76,6 +76,17 @@ pub fn build_tray(
     // Assemble the full menu
     let menu = Menu::new();
     menu.append(&version_item).map_err(|e| e.to_string())?;
+    // macOS RDP hint (disabled, informational): RDP strips synthesized modifier
+    // keys in scancode mode, so uppercase/special chars need Unicode mode.
+    #[cfg(target_os = "macos")]
+    {
+        let rdp_hint = tray_icon::menu::MenuItem::new(
+            "RDP tip: Keyboard Mode → Unicode (⌃⌘U)",
+            false,
+            None,
+        );
+        menu.append(&rdp_hint).map_err(|e| e.to_string())?;
+    }
     menu.append(&PredefinedMenuItem::separator()).map_err(|e| e.to_string())?;
     menu.append(&paste_now).map_err(|e| e.to_string())?;
     menu.append(&PredefinedMenuItem::separator()).map_err(|e| e.to_string())?;
