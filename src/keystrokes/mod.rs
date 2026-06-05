@@ -20,6 +20,19 @@ pub fn wait_for_modifiers_released() {
     macos::wait_for_modifiers_released();
 }
 
+/// Returns true if the app has the OS permission required to synthesize input.
+/// On Windows this is always available; on macOS it requires Accessibility trust.
+pub fn has_input_permission() -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        macos::is_accessibility_trusted()
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        true
+    }
+}
+
 /// Send a string as individual keystrokes with the given delay between each character.
 /// Delegates to the platform-specific implementation for the actual key simulation.
 pub fn send_string_as_keystrokes(text: &str, delay_ms: u64) {
