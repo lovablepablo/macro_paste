@@ -18,13 +18,13 @@ pub fn prompt_missing_permission() {
         std::thread::spawn(|| {
             use std::process::Command;
 
-            const OPEN_BTN: &str = "Einstellungen öffnen";
+            const OPEN_BTN: &str = "Open Settings";
             let script = format!(
-                "display dialog \"macro_paste benötigt die Berechtigung »Bedienungshilfen«, \
-                 um Tastatureingaben zu senden.\\n\\nBitte aktiviere macro_paste unter:\\n\
-                 Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen.\" \
-                 with title \"Berechtigung erforderlich\" \
-                 buttons {{\"Später\", \"{OPEN_BTN}\"}} default button \"{OPEN_BTN}\" \
+                "display dialog \"macro_paste needs the Accessibility permission \
+                 to send keystrokes.\\n\\nPlease enable macro_paste under:\\n\
+                 System Settings → Privacy & Security → Accessibility.\" \
+                 with title \"Permission required\" \
+                 buttons {{\"Later\", \"{OPEN_BTN}\"}} default button \"{OPEN_BTN}\" \
                  with icon caution"
             );
 
