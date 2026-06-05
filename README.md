@@ -99,10 +99,14 @@ cp assets/Info.plist target/release/macro_paste.app/Contents/Info.plist
 open target/release/macro_paste.app
 ```
 
+> **For repeated local builds:** use the helper scripts instead. Run `scripts/setup-signing.sh` once to create a stable self-signed code-signing identity, then `scripts/build-mac.sh` to build, bundle and sign the app. Signing with a stable identity keeps the Accessibility permission across rebuilds — ad-hoc/linker-signed binaries change their hash on every build and lose the grant.
+
 **Important – Accessibility permission:**
 
 Keystroke simulation requires Accessibility access. Grant it under:
 **System Settings → Privacy & Security → Accessibility**
+
+If the permission is missing, macro_paste shows a dialog with an **Open Settings** button that takes you straight to the right place.
 
 > **Note:** macOS revokes this permission whenever the binary is replaced (e.g. after a new build). After every update you must re-add the app in the Accessibility settings: remove it with `−` and add it again with `+`.
 
@@ -170,7 +174,7 @@ The file is created automatically with default values on first launch. Changes m
 - **Language:** Rust
 - **Keystroke Simulation:**
   - Windows: `SendInput` with `KEYEVENTF_UNICODE`
-  - macOS: `CGEvent` with `CGEventKeyboardSetUnicodeString`
+  - macOS: `CGEvent` with `CGEventKeyboardSetUnicodeString`, plus layout-aware key codes via `UCKeyTranslate` (so RDP clients in scancode mode receive the correct key instead of repeated "a")
 - **Event Loop:** winit (cross-platform)
 - **Tray:** tray-icon + muda
 - **Hotkey:** global-hotkey crate
